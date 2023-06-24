@@ -2,17 +2,20 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
 
 #include "cache.hpp"
 
 
 int main() {
 
-	std::ifstream odyssey_file("../data/odyssey.txt");
+	std::string cacheSim{std::getenv("CACHE")};
+	std::string odyssey_file_path{cacheSim + "/data/odyssey.txt"};
+	std::cout << "Opening file " << odyssey_file_path << " to act as main memory." << std::endl;
+	std::ifstream odyssey_file(odyssey_file_path);
 	std::stringstream odyssey_buffer;
 	odyssey_buffer << odyssey_file.rdbuf();
 	std::string odyssey{odyssey_buffer.str()};
-
 
 	Cache<8*1024, 4, 32, 64> P4L1Cache{odyssey};
 
@@ -32,13 +35,13 @@ int main() {
 		std::cout << std::string{P4L1Cache.read(i)};
 	}
 
-	// for (std::size_t i = 62; i < 66; ++i) {
-	// 	std::cout << std::string{P4L1Cache.read_debug(i)};
-	// }
+	for (std::size_t i = 62; i < 66; ++i) {
+		std::cout << std::string{P4L1Cache.read_debug(i)};
+	}
 
-	// for (std::size_t i = 2046; i < 2050; ++i) {
-	// 	std::cout << std::string{P4L1Cache.read_debug(i)};
-	// }
+	for (std::size_t i = 2046; i < 2050; ++i) {
+		std::cout << std::string{P4L1Cache.read_debug(i)};
+	}
 
 
 	for (std::size_t i = 8190; i < 8194; ++i) {

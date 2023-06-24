@@ -14,7 +14,7 @@ template <std::size_t cache_size_bytes, std::size_t num_cache_ways, std::size_t 
 class Cache {
 	private:
 		std::size_t size, num_ways, address_size, cacheline_length, num_sets, offset_bits, index_bits, tag_bits;
-		unsigned int offset_mask, index_mask, tag_mask;
+		unsigned int offset_mask, index_mask, tag_mask, clk;
 		std::array<std::unordered_map<unsigned int, std::tuple<bool, unsigned int, unsigned int, std::array<char, cacheline_length_bytes>>>, num_cache_ways> ways;
 		std::array<size_t, num_cache_ways> way_ctr;
 		std::string mem;
@@ -47,6 +47,9 @@ class Cache {
 
 template <std::size_t cache_size_bytes, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
 Cache<cache_size_bytes, num_cache_ways, address_size_bits, cacheline_length_bytes>::Cache(std::string Memory) {
+	
+	clk = 0;
+
 	size = cache_size_bytes;
 	num_ways = num_cache_ways;
 	mem = Memory;
@@ -144,7 +147,7 @@ char Cache<cache_size_bytes, num_cache_ways, address_size_bits, cacheline_length
 	for (std::size_t way_num = 0; way_num < num_ways; ++way_num) {
 		if (std::get<bool>(ways[way_num][index]) == true) {
 			if (std::get<2>(ways[way_num][index]) == tag) {
-				std::get<1>(ways[way_num][index]) += 1;
+				std::get<1>(ways[way_num][index]) = clk;
 				data = std::get<std::array<char, cacheline_length_bytes>>(ways[way_num][index])[offset];
 				found = true;
 			}
@@ -161,7 +164,7 @@ char Cache<cache_size_bytes, num_cache_ways, address_size_bits, cacheline_length
 		auto wayitr = std::min_element(std::begin(way_ctr), std::end(way_ctr));
 		size_t lru_way = std::distance(std::begin(way_ctr), wayitr);
 		std::get<bool>(ways[lru_way][index]) = true;
-		std::get<1>(ways[lru_way][index]) += 1;
+		std::get<1>(ways[lru_way][index]) = clk;
 		std::get<2>(ways[lru_way][index]) = tag;
 		std::size_t wrapped_addr_start = ((address%mem.length())/cacheline_length)*cacheline_length;
 		for (size_t off = 0; off < cacheline_length; ++off) {
@@ -170,6 +173,8 @@ char Cache<cache_size_bytes, num_cache_ways, address_size_bits, cacheline_length
 
 		data = std::get<std::array<char, cacheline_length_bytes>>(ways[lru_way][index])[offset];
 	}
+
+	clk += 1;
 
 	return data;
 }
@@ -197,7 +202,7 @@ char Cache<cache_size_bytes, num_cache_ways, address_size_bits, cacheline_length
 		if (std::get<bool>(ways[way_num][index]) == true) {
 			std::cout << "std::get<2>(ways[" << way_num << "][" << index << "]): " << std::get<2>(ways[way_num][index]) << " == tag: " << tag << " is " << (std::get<2>(ways[way_num][index]) == tag) << std::endl;
 			if (std::get<2>(ways[way_num][index]) == tag) {
-				std::get<1>(ways[way_num][index]) += 1;
+				std::get<1>(ways[way_num][index]) = clk;
 				std::cout << "std::get<1>(ways[" << way_num << "][" << index << "]): " << std::get<1>(ways[way_num][index]) << std::endl;
 				data = std::get<std::array<char, cacheline_length_bytes>>(ways[way_num][index])[offset];
 				found = true;
@@ -220,18 +225,23 @@ char Cache<cache_size_bytes, num_cache_ways, address_size_bits, cacheline_length
 		size_t lru_way = std::distance(std::begin(way_ctr), wayitr);
 		std::cout << "lru_way: " << lru_way << std::endl;
 		std::get<bool>(ways[lru_way][index]) = true;
-		std::get<1>(ways[lru_way][index]) += 1;
+		std::get<1>(ways[lru_way][index]) = clk;
 		std::get<2>(ways[lru_way][index]) = tag;
 		std::cout << "Setting way: " << lru_way << std::endl;
 		std::cout << "std::get<bool>(ways[" << lru_way << "][" << index << "]): " << std::get<bool>(ways[lru_way][index]) << std::endl;
 		std::cout << "std::get<2>(ways[" << lru_way << "][" << index << "]): " << std::get<2>(ways[lru_way][index]) << std::endl;
 		std::cout << "std::get<1>(ways[" << lru_way << "][" << index << "]): " << std::get<1>(ways[lru_way][index]) << std::endl;
+		std::cout << "Reading cacheline into cache..." << std::endl;
 		std::size_t wrapped_addr_start = ((address%mem.length())/cacheline_length)*cacheline_length;
+		std::cout << "wrapped_addr_start: " << wrapped_addr_start << std::endl;
 		for (size_t off = 0; off < cacheline_length; ++off) {
 			std::get<std::array<char, cacheline_length_bytes>>(ways[lru_way][index])[off] = mem[wrapped_addr_start + off];	
 		}
 
 		data = std::get<std::array<char, cacheline_length_bytes>>(ways[lru_way][index])[offset];
 	}
+
+	clk += 1;
+
 	return data;
 }
