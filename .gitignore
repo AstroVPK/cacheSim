@@ -1,0 +1,5 @@
+.sconsign.*
+*.o
+*.so
+__pycache__
+bin/test_cache
