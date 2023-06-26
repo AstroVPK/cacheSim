@@ -212,7 +212,7 @@ char Cache<cache_size_bytes, num_cache_ways, address_size_bits, cacheline_length
 		way_ctr[way_num] = std::get<1>(ways[way_num][index]);
 	}
 	std::cout << "found: " << found << std::endl;
-	printContainer("way_ctr", way_ctr);
+	print_container("way_ctr", way_ctr);
 
 	// Check to see if data_ptr is not null (data was found in cache) or is null (data was not found)
 	if (found == false) {

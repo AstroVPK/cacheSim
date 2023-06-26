@@ -6,7 +6,7 @@
 
 
 template <typename C>
-void printContainer(std::string const & name, C const & container, bool noEndl=false) {
+void print_container(std::string const & name, C const & container, bool noEndl=false) {
     std::cout << name << ": [";
     for (auto iter = container.begin(); iter < container.end() - 1; ++iter) {
             std::cout << *iter << ", ";
@@ -17,9 +17,9 @@ void printContainer(std::string const & name, C const & container, bool noEndl=f
     }
 }
 
-template <typename T>
-int iterIdx(auto & iter, std::vector<T> arr) {
-    return static_cast<int>(std::distance(arr.begin(), iter));
+template <typename C>
+int iterator_index(auto & iter, C & container) {
+    return static_cast<int>(std::distance(container.begin(), iter));
 }
 
 template <typename R>
