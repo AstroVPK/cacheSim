@@ -18,8 +18,8 @@ void print_container(std::string const & name, C const & container, bool noEndl=
 }
 
 template <typename C>
-int iterator_index(auto & iter, C & container) {
-    return static_cast<int>(std::distance(container.begin(), iter));
+std::size_t iterator_index(auto & iter, C & container) {
+    return static_cast<std::size_t>(std::distance(container.begin(), iter));
 }
 
 template <typename R>
