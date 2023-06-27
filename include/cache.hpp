@@ -11,7 +11,7 @@
 
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits=64, std::size_t cacheline_length_bytes=64>
-class Cache {
+class LRUCache {
 	private:
 		std::size_t size, num_sets, num_ways, address_size, cacheline_length, offset_bits, index_bits, tag_bits;
 		unsigned int offset_mask, index_mask, tag_mask, clk;
@@ -23,7 +23,7 @@ class Cache {
 		std::string mem;
 	public:
 
-		Cache(std::string Memory);
+		LRUCache(std::string Memory);
 
 		std::bitset<sizeof(unsigned int)*CHAR_BIT> get_offset_mask();
 
@@ -49,7 +49,7 @@ class Cache {
 };
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::Cache(std::string Memory) {
+LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::LRUCache(std::string Memory) {
 	
 	clk = 0;
 
@@ -91,52 +91,52 @@ Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes> 
-std::bitset<sizeof(unsigned int)*CHAR_BIT> Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_offset_mask() {
+std::bitset<sizeof(unsigned int)*CHAR_BIT> LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_offset_mask() {
 	return std::bitset<sizeof(unsigned int)*CHAR_BIT>(offset_mask);
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-std::bitset<sizeof(unsigned int)*CHAR_BIT> Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_index_mask() {
+std::bitset<sizeof(unsigned int)*CHAR_BIT> LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_index_mask() {
 	return std::bitset<sizeof(unsigned int)*CHAR_BIT>(index_mask);
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-std::bitset<sizeof(unsigned int)*CHAR_BIT> Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_tag_mask() {
+std::bitset<sizeof(unsigned int)*CHAR_BIT> LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_tag_mask() {
 	return std::bitset<sizeof(unsigned int)*CHAR_BIT>(tag_mask);
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-std::size_t Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_cache_size() {
+std::size_t LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_cache_size() {
 	return size;
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-std::size_t Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_cache_ways() {
+std::size_t LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_cache_ways() {
 	return num_ways;
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-std::size_t Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_cache_sets() {
+std::size_t LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_cache_sets() {
 	return num_sets;
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-std::size_t Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_offset_bits() {
+std::size_t LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_offset_bits() {
 	return offset_bits;
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-std::size_t Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_index_bits() {
+std::size_t LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_index_bits() {
 	return index_bits;
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-std::size_t Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_tag_bits() {
+std::size_t LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::get_num_tag_bits() {
 	return tag_bits;
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-char Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::read(std::size_t address) {
+char LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::read(std::size_t address) {
 
 	unsigned int tag = (address & tag_mask)>>(offset_bits+index_bits);
 	unsigned int index = (address & index_mask)>>(offset_bits);
@@ -182,7 +182,7 @@ char Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_b
 }
 
 template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
-char Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::read_debug(std::size_t address) {
+char LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::read_debug(std::size_t address) {
 
 	unsigned int tag = (address & tag_mask)>>(offset_bits+index_bits);
 	unsigned int index = (address & index_mask)>>(offset_bits);

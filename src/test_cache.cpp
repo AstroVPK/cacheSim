@@ -17,7 +17,7 @@ int main() {
 	odyssey_buffer << odyssey_file.rdbuf();
 	std::string odyssey{odyssey_buffer.str()};
 
-	Cache<32, 4, 32, 64> P4L1Cache{odyssey};
+	LRUCache<32, 4, 32, 64> P4L1Cache{odyssey};
 
 	std::cout << " cache_size: " << P4L1Cache.get_cache_size()/1024 << " kB" << std::endl;
 	std::cout << "   num_ways: " << P4L1Cache.get_num_cache_ways() << std::endl;
