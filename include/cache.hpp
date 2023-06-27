@@ -164,7 +164,7 @@ char Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_b
 		/* If a way is empty, way_ctr should automatically be zero since it was never used */
 		/* So the way with the lowest way_ctr value is automatically the way to use */ 
 		auto wayitr = std::min_element(std::begin(way_ctr), std::end(way_ctr));
-		std::size_t lru_way = iterator_index(wayitr, way_ctr);
+		std::size_t lru_way = std::distance(way_ctr.begin(), wayitr);
 		valid[lru_way][index] = true;
 		clk_table[lru_way][index] = clk;
 		tag_table[lru_way][index] = tag;
@@ -223,7 +223,7 @@ char Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_b
 		/* If a way is empty, way_ctr should automatically be zero since it was never used */
 		/* So the way with the lowest way_ctr value is automatically the way to use */ 
 		auto wayitr = std::min_element(std::begin(way_ctr), std::end(way_ctr));
-		std::size_t lru_way = iterator_index(wayitr, way_ctr);
+		std::size_t lru_way = std::distance(way_ctr.begin(), wayitr);
 		std::cout << "lru_way: " << lru_way << std::endl;
 		valid[lru_way][index] = true;
 		clk_table[lru_way][index] = clk;

@@ -17,11 +17,6 @@ void print_container(std::string const & name, C const & container, bool noEndl=
     }
 }
 
-template <typename C>
-std::size_t iterator_index(auto & iter, C & container) {
-    return static_cast<std::size_t>(std::distance(container.begin(), iter));
-}
-
 template <typename R>
 static constexpr R bitmask(unsigned int const onecount) {
     return static_cast<R>(-(onecount != 0)) & (static_cast<R>(-1) >> ((sizeof(R)*CHAR_BIT) - onecount));
