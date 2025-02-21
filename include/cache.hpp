@@ -242,3 +242,83 @@ char LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_lengt
 
 	return data;
 }
+
+
+template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits=64, std::size_t cacheline_length_bytes=64>
+class LFUCache : virtual public Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes> {
+	protected:
+
+		std::array<std::array<unsigned int, num_cache_sets>, num_cache_ways> freq_table;
+
+		std::array<std::size_t, num_cache_ways> way_ctr;
+
+	public:
+
+		LFUCache() = delete;
+
+		LFUCache(std::string Memory);
+
+		char read(std::size_t address);
+
+		char read_debug(std::size_t address);
+
+};
+
+
+template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
+LFUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::LFUCache(std::string Memory) :
+	Cache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::Cache(Memory) {
+
+	std::size_t max_index = static_cast<std::size_t>(std::pow(2.0, static_cast<double>(this->index_bits))) - 1;
+	
+	for (std::size_t way_num = 0; way_num < this->num_ways; ++way_num) {
+		way_ctr[way_num] = 0;
+		for (unsigned int index = 0; index < max_index; ++index) {
+			freq_table[way_num][index] = 0; // Set freq to 0
+		}
+	}
+
+}
+
+
+template <std::size_t num_cache_sets, std::size_t num_cache_ways, std::size_t address_size_bits, std::size_t cacheline_length_bytes>
+char LRUCache<num_cache_sets, num_cache_ways, address_size_bits, cacheline_length_bytes>::read(std::size_t address) {
+
+	unsigned int tag = (address & this->tag_mask)>>(this->offset_bits + this->index_bits);
+	unsigned int index = (address & this->index_mask)>>(this->offset_bits);
+	unsigned int offset = address & this->offset_mask;
+
+	char data = static_cast<char>(0);
+	bool found = false;
+
+	// See if requested datum is already in cache
+	for (std::size_t way_num = 0; way_num < this->num_ways; ++way_num) {
+		if (this->valid[way_num][index] == true) {
+			if (this->tag_table[way_num][index] == tag) {
+				freq_table[way_num][index] += 1;
+				data = this->data_table[way_num][index][offset];
+				found = true;
+			}
+		}
+		way_ctr[way_num] = freq_table[way_num][index];
+	}
+
+	// Check to see if data_ptr is not null (data was found in cache) or is null (data was not found)
+	if (found == false) {
+		auto wayitr = std::min_element(std::begin(way_ctr), std::end(way_ctr));
+		std::size_t lru_way = std::distance(way_ctr.begin(), wayitr);
+		this->valid[lru_way][index] = true;
+		freq_table[lru_way][index] += 1;
+		this->tag_table[lru_way][index] = tag;
+		std::size_t wrapped_addr_start = ((address%this->mem.length())/this->cacheline_length)*this->cacheline_length;
+		for (std::size_t off = 0; off < this->cacheline_length; ++off) {
+			this->data_table[lru_way][index][off] = this->mem[wrapped_addr_start + off];	
+		}
+
+		data = this->data_table[lru_way][index][offset];
+	}
+
+	this->clk += 1;
+
+	return data;
+}
